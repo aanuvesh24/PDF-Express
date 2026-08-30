@@ -109,7 +109,18 @@ export default function PdfToImagePage() {
   };
 
   const handleConvert = async () => {
-    if (!sourceBuffer || !sourceFile) return;
+    if (!sourceFile) return;
+
+    let buffer = sourceBuffer;
+    if (!buffer || buffer.byteLength === 0) {
+      try {
+        buffer = await readFileAsArrayBuffer(sourceFile);
+        setSourceBuffer(buffer);
+      } catch {
+        setErrorMessage('Failed to read source PDF file.');
+        return;
+      }
+    }
 
     const selectedIndices = pages
       .filter((p) => p.isSelected)
@@ -135,7 +146,7 @@ export default function PdfToImagePage() {
       };
 
       const result = await exportPdfPagesToImages(
-        sourceBuffer,
+        buffer,
         sourceFile.name,
         options,
         selectedIndices,

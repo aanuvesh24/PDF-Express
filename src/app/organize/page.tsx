@@ -159,7 +159,20 @@ export default function OrganizePdfPage() {
   };
 
   const handleSaveAndDownload = async (extractOnlySelected = false) => {
-    if (!sourceBuffer) return;
+    let buffer = sourceBuffer;
+    if (!buffer || buffer.byteLength === 0) {
+      if (sourceFile) {
+        try {
+          buffer = await readFileAsArrayBuffer(sourceFile);
+          setSourceBuffer(buffer);
+        } catch {
+          setErrorMessage('Could not read source PDF file.');
+          return;
+        }
+      } else {
+        return;
+      }
+    }
 
     const targetPages = extractOnlySelected 
       ? pages.filter((p) => p.isSelected) 
@@ -180,7 +193,7 @@ export default function OrganizePdfPage() {
 
     try {
       const outputBlob = await organizePdfDocument(
-        sourceBuffer,
+        buffer,
         targetPages,
         (current, total, message) => {
           const pct = Math.round((current / total) * 90);

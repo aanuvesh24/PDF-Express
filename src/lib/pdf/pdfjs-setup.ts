@@ -23,8 +23,17 @@ export function initPdfJs(): typeof pdfjsLib {
 
 export async function loadPdfDocument(data: ArrayBuffer | Uint8Array): Promise<pdfjsLib.PDFDocumentProxy> {
   const pdf = initPdfJs();
+
+  // pdf.getDocument transfers the underlying ArrayBuffer to the Web Worker via Transferable objects.
+  // Passing the original buffer directly detaches it on the main thread (setting byteLength to 0
+  // and causing subsequent "Cannot perform Construct on a detached ArrayBuffer" errors).
+  // We make a defensive copy of the binary data before handing it over to pdf.js.
+  const bytes = data instanceof Uint8Array
+    ? new Uint8Array(data)
+    : new Uint8Array(data.slice(0));
+
   const loadingTask = pdf.getDocument({
-    data: new Uint8Array(data),
+    data: bytes,
     cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
     cMapPacked: true,
   });

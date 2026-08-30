@@ -41,7 +41,7 @@ export function parsePageRange(rangeStr: string, maxPages: number): number[] {
 }
 
 export async function exportPdfPagesToImages(
-  sourceBuffer: ArrayBuffer,
+  sourceBuffer: ArrayBuffer | Uint8Array,
   baseFilename: string,
   options: PdfToImgOptions,
   selectedPageNumbers?: number[],

@@ -2,7 +2,7 @@ import { PDFDocument, degrees } from 'pdf-lib';
 import { PageItem } from '@/types/pdf';
 
 export async function organizePdfDocument(
-  sourceBuffer: ArrayBuffer,
+  sourceBuffer: ArrayBuffer | Uint8Array,
   pageItems: PageItem[],
   onProgress?: (current: number, total: number, message: string) => void
 ): Promise<Blob> {
@@ -13,7 +13,11 @@ export async function organizePdfDocument(
 
   if (onProgress) onProgress(0, activePages.length, 'Loading source document...');
 
-  const srcDoc = await PDFDocument.load(sourceBuffer, { ignoreEncryption: true });
+  const bufferCopy = sourceBuffer instanceof Uint8Array
+    ? new Uint8Array(sourceBuffer)
+    : new Uint8Array(sourceBuffer.slice(0));
+
+  const srcDoc = await PDFDocument.load(bufferCopy, { ignoreEncryption: true });
   const newDoc = await PDFDocument.create();
 
   // Extract pages according to user defined order
